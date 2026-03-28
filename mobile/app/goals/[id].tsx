@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
+import Paywall from '../../components/Paywall';
 
 interface Step { id: string; title: string; completed: boolean; order: number }
 interface Goal { id: string; title: string; description?: string; progress: number; status: string; targetDate?: string; steps: Step[] }
@@ -17,6 +18,8 @@ export default function GoalDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [newStep, setNewStep] = useState('');
   const [addingStep, setAddingStep] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const load = async () => {
     try {
@@ -60,6 +63,20 @@ export default function GoalDetailScreen() {
     ]);
   };
 
+  const generateSteps = async () => {
+    setAiLoading(true);
+    try {
+      const { data } = await api.post('/api/ai/goal-breakdown', { goalId: id });
+      for (const title of data) {
+        const { data: step } = await api.post(`/api/goals/${id}/steps`, { title, order: goal!.steps.length });
+        setGoal((g) => g ? { ...g, steps: [...g.steps, step] } : g);
+      }
+    } catch (err: any) {
+      if (err?.response?.data?.upgrade) setShowPaywall(true);
+      else Alert.alert('Error', 'Could not generate steps');
+    } finally { setAiLoading(false); }
+  };
+
   const updateStatus = async (status: string) => {
     await api.put(`/api/goals/${id}`, { status });
     setGoal({ ...goal!, status });
@@ -92,7 +109,12 @@ export default function GoalDetailScreen() {
       </View>
 
       <View style={s.section}>
-        <Text style={s.sectionTitle}>Steps</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={s.sectionTitle}>Steps</Text>
+          <TouchableOpacity style={s.aiBtn} onPress={generateSteps} disabled={aiLoading}>
+            {aiLoading ? <ActivityIndicator size="small" color="#16a34a" /> : <><Ionicons name="sparkles" size={14} color="#16a34a" /><Text style={s.aiBtnText}> AI Generate</Text></>}
+          </TouchableOpacity>
+        </View>
         {goal.steps.map((step) => (
           <TouchableOpacity key={step.id} style={s.stepRow} onPress={() => toggleStep(step)}>
             <Ionicons name={step.completed ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={step.completed ? '#16a34a' : '#d1d5db'} />
@@ -122,6 +144,7 @@ export default function GoalDetailScreen() {
       </TouchableOpacity>
 
       <View style={{ height: 40 }} />
+      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} reason="AI goal breakdown is a Pro feature. Upgrade to unlock AI-powered steps." />
     </ScrollView>
   );
 }
@@ -151,4 +174,6 @@ const s = StyleSheet.create({
   addBtn: { width: 42, height: 42, borderRadius: 10, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center' },
   deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginHorizontal: 20, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#fee2e2', backgroundColor: '#fff8f8' },
   deleteText: { color: '#ef4444', fontWeight: '600', fontSize: 14 },
+  aiBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  aiBtnText: { fontSize: 12, color: '#16a34a', fontWeight: '600' },
 });

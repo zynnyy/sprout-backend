@@ -32,6 +32,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   const parsed = goalSchema.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
 
+  // Free tier limit: 2 active goals
+  const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { isPro: true } });
+  if (!user?.isPro) {
+    const count = await prisma.goal.count({ where: { userId: req.userId!, status: 'active' } });
+    if (count >= 2) { res.status(403).json({ error: 'Free limit reached. Upgrade to Pro for unlimited goals.', upgrade: true }); return; }
+  }
+
   const { title, description, targetDate, progress, status } = parsed.data;
   const goal = await prisma.goal.create({
     data: {

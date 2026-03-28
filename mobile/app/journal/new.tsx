@@ -4,7 +4,9 @@ import {
   ScrollView, ActivityIndicator, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
+import Paywall from '../../components/Paywall';
 
 const MOODS = [
   { label: 'Great', value: 'great', emoji: '😄' },
@@ -20,6 +22,20 @@ export default function NewJournalEntryScreen() {
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('');
   const [loading, setLoading] = useState(false);
+  const [promptLoading, setPromptLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  const getPrompt = async () => {
+    setPromptLoading(true);
+    try {
+      const { data } = await api.get('/api/ai/journal-prompt');
+      setTitle(data.prompt.slice(0, 60));
+      setContent(data.prompt + '\n\n');
+    } catch (err: any) {
+      if (err?.response?.data?.upgrade) setShowPaywall(true);
+      else Alert.alert('Error', 'Could not get prompt');
+    } finally { setPromptLoading(false); }
+  };
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) { Alert.alert('Error', 'Please fill in the title and content'); return; }
@@ -47,6 +63,10 @@ export default function NewJournalEntryScreen() {
           ))}
         </View>
 
+        <TouchableOpacity style={s.promptBtn} onPress={getPrompt} disabled={promptLoading}>
+          {promptLoading ? <ActivityIndicator size="small" color="#16a34a" /> : <><Ionicons name="sparkles" size={15} color="#16a34a" /><Text style={s.promptBtnText}> Get AI journal prompt</Text></>}
+        </TouchableOpacity>
+
         <Text style={s.label}>Title *</Text>
         <TextInput style={s.input} placeholder="What's on your mind?" placeholderTextColor="#9ca3af" value={title} onChangeText={setTitle} />
 
@@ -65,6 +85,7 @@ export default function NewJournalEntryScreen() {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Save entry</Text>}
         </TouchableOpacity>
       </View>
+      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} reason="AI journal prompts are a Pro feature. Upgrade to unlock daily AI-powered writing prompts." />
     </ScrollView>
   );
 }
@@ -83,4 +104,6 @@ const s = StyleSheet.create({
   bigArea: { height: 200, textAlignVertical: 'top' },
   btn: { backgroundColor: '#16a34a', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 24 },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  promptBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  promptBtnText: { color: '#16a34a', fontWeight: '600', fontSize: 14 },
 });

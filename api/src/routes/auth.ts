@@ -36,7 +36,7 @@ router.post('/register', async (req: Request, res: Response) => {
   const user = await prisma.user.create({ data: { name, email, password: hashed } });
   const token = signToken({ userId: user.id });
 
-  res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email, isPro: user.isPro } });
 });
 
 router.post('/login', async (req: Request, res: Response) => {
@@ -60,13 +60,13 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   const token = signToken({ userId: user.id });
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  res.json({ token, user: { id: user.id, name: user.name, email: user.email, isPro: user.isPro } });
 });
 
 router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   const user = await prisma.user.findUnique({
     where: { id: req.userId },
-    select: { id: true, name: true, email: true, createdAt: true },
+    select: { id: true, name: true, email: true, isPro: true, createdAt: true },
   });
   if (!user) {
     res.status(404).json({ error: 'User not found' });

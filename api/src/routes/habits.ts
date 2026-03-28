@@ -60,6 +60,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   const parsed = habitSchema.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
 
+  // Free tier limit: 3 habits
+  const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { isPro: true } });
+  if (!user?.isPro) {
+    const count = await prisma.habit.count({ where: { userId: req.userId! } });
+    if (count >= 3) { res.status(403).json({ error: 'Free limit reached. Upgrade to Pro for unlimited habits.', upgrade: true }); return; }
+  }
+
   const habit = await prisma.habit.create({
     data: { userId: req.userId!, ...parsed.data },
   });

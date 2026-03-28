@@ -8,11 +8,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  createdAt DateTime @default(now())
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  name                  String
+  password              String
+  isPro                 Boolean  @default(false)
+  revenuecatCustomerId  String?
+  proExpiresAt          DateTime?
+  createdAt             DateTime @default(now())
 
   goals          Goal[]
   habits         Habit[]

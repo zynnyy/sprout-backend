@@ -1,12 +1,13 @@
 import React, { useCallback, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, RefreshControl,
+  ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import Paywall from '../../components/Paywall';
 
 interface Habit { id: string; title: string; color: string; completedToday: boolean }
 interface Goal { id: string; title: string; progress: number; status: string }
@@ -23,6 +24,9 @@ export default function DashboardScreen() {
   const [todayMood, setTodayMood] = useState<MoodEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [insights, setInsights] = useState<string | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -40,6 +44,17 @@ export default function DashboardScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => { setLoading(true); load(); }, [load]));
+
+  const getInsights = async () => {
+    setInsightsLoading(true);
+    try {
+      const { data } = await api.get('/api/ai/weekly-insights');
+      setInsights(data.insights);
+    } catch (err: any) {
+      if (err?.response?.data?.upgrade) setShowPaywall(true);
+      else Alert.alert('Error', 'Could not load insights');
+    } finally { setInsightsLoading(false); }
+  };
 
   const completedHabits = habits.filter((h) => h.completedToday).length;
 
@@ -133,7 +148,25 @@ export default function DashboardScreen() {
         )}
       </View>
 
+      {/* Weekly AI Insights */}
+      <View style={s.card}>
+        <View style={s.cardHeader}>
+          <Text style={s.cardTitle}>✨ Weekly Insights</Text>
+          {!insights && (
+            <TouchableOpacity onPress={getInsights} disabled={insightsLoading}>
+              <Text style={s.cardAction}>{insightsLoading ? 'Loading...' : 'Generate'}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        {insights ? (
+          <Text style={{ fontSize: 14, color: '#374151', lineHeight: 22 }}>{insights}</Text>
+        ) : (
+          <Text style={s.empty}>Tap Generate for your AI-powered weekly summary</Text>
+        )}
+      </View>
+
       <View style={{ height: 32 }} />
+      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} reason="Weekly AI insights are a Pro feature. Upgrade to unlock personalised growth summaries." />
     </ScrollView>
   );
 }

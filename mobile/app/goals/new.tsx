@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import api from '../../lib/api';
+import Paywall from '../../components/Paywall';
 
 export default function NewGoalScreen() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function NewGoalScreen() {
   const [description, setDescription] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleCreate = async () => {
     if (!title.trim()) { Alert.alert('Error', 'Please enter a goal title'); return; }
@@ -19,8 +21,9 @@ export default function NewGoalScreen() {
     try {
       await api.post('/api/goals', { title: title.trim(), description: description.trim() || undefined, targetDate: targetDate || undefined });
       router.back();
-    } catch {
-      Alert.alert('Error', 'Could not create goal');
+    } catch (err: any) {
+      if (err?.response?.data?.upgrade) { setShowPaywall(true); }
+      else { Alert.alert('Error', 'Could not create goal'); }
     } finally {
       setLoading(false);
     }
@@ -42,6 +45,7 @@ export default function NewGoalScreen() {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Create goal</Text>}
         </TouchableOpacity>
       </View>
+      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} reason="You've reached the free limit of 2 goals. Upgrade to Pro for unlimited goals + AI features." />
     </ScrollView>
   );
 }
