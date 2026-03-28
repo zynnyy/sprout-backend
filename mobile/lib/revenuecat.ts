@@ -7,9 +7,14 @@ let LOG_LEVEL: any = null;
 function getSDK() {
   if (Platform.OS === 'web') return null;
   if (!Purchases) {
-    const mod = require('react-native-purchases');
-    Purchases = mod.default;
-    LOG_LEVEL = mod.LOG_LEVEL;
+    try {
+      const mod = require('react-native-purchases');
+      Purchases = mod.default;
+      LOG_LEVEL = mod.LOG_LEVEL;
+    } catch {
+      // Native module not available (e.g. Expo Go) — all RC calls will be no-ops
+      return null;
+    }
   }
   return Purchases;
 }
