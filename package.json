@@ -2,12 +2,8 @@
   "name": "sprout",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "api",
-    "mobile"
-  ],
   "scripts": {
-    "api": "npm run dev --workspace=api",
-    "mobile": "npm run start --workspace=mobile"
+    "api": "cd api && npm run dev",
+    "mobile": "cd mobile && npm run start"
   }
 }
