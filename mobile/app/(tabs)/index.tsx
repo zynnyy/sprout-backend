@@ -17,7 +17,7 @@ const MOOD_LABELS = ['', '😞', '😕', '😐', '🙂', '😄'];
 const ENERGY_LABELS = ['', '🪫', '😴', '⚡', '🔥', '🚀'];
 
 export default function DashboardScreen() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -73,9 +73,11 @@ export default function DashboardScreen() {
           <Text style={s.greeting}>Good {getGreeting()}, {user?.name?.split(' ')[0]} 👋</Text>
           <Text style={s.date}>{today}</Text>
         </View>
-        <TouchableOpacity onPress={logout}>
-          <Ionicons name="log-out-outline" size={24} color="#6b7280" />
-        </TouchableOpacity>
+        {user?.isPro && (
+          <View style={{ backgroundColor: '#16a34a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}>
+            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 1 }}>PRO</Text>
+          </View>
+        )}
       </View>
 
       {/* Mood today */}
