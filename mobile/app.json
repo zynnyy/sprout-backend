@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Sprout",
-    "slug": "sprout",
+    "name": "Sprout Me",
+    "slug": "sprout-me",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

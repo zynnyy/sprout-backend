@@ -29,7 +29,7 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.container}>
       <ScrollView contentContainerStyle={s.inner} keyboardShouldPersistTaps="handled">
-        <Text style={s.logo}>🌱 Sprout</Text>
+        <Text style={s.logo}>🌱 Sprout Me</Text>
         <Text style={s.tagline}>Start your growth journey</Text>
 
         <TextInput

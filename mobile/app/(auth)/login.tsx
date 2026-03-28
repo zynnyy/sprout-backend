@@ -27,7 +27,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.container}>
       <View style={s.inner}>
-        <Text style={s.logo}>🌱 Sprout</Text>
+        <Text style={s.logo}>🌱 Sprout Me</Text>
         <Text style={s.tagline}>Grow every day</Text>
 
         <TextInput
