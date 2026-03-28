@@ -29,13 +29,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
-      [
-        "react-native-purchases",
-        {
-          "addAdServicesFramework": true
-        }
-      ]
+      "expo-secure-store"
     ]
   }
 }

@@ -1,49 +1,24 @@
-import { Platform } from 'react-native';
+import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
-// Lazily import to avoid crashing on web where the native module doesn't exist
-let Purchases: any = null;
-let LOG_LEVEL: any = null;
-
-function getSDK() {
-  if (Platform.OS === 'web') return null;
-  if (!Purchases) {
-    try {
-      const mod = require('react-native-purchases');
-      Purchases = mod.default;
-      LOG_LEVEL = mod.LOG_LEVEL;
-    } catch {
-      // Native module not available (e.g. Expo Go) — all RC calls will be no-ops
-      return null;
-    }
-  }
-  return Purchases;
-}
-
-const API_KEY = 'test_XOEUVaMqrFTeBEEXqIJYtrormvd';
 export const ENTITLEMENT_ID = 'sprout me Pro';
+const API_KEY = 'test_XOEUVaMqrFTeBEEXqIJYtrormvd';
 
 export async function initPurchases(userId?: string) {
-  const sdk = getSDK();
-  if (!sdk) return;
   try {
-    sdk.setLogLevel(LOG_LEVEL.WARN);
-    sdk.configure({ apiKey: API_KEY, appUserID: userId ?? null });
+    Purchases.setLogLevel(LOG_LEVEL.WARN);
+    Purchases.configure({ apiKey: API_KEY, appUserID: userId ?? null });
   } catch {}
 }
 
 export async function identifyUser(userId: string) {
-  const sdk = getSDK();
-  if (!sdk) return;
   try {
-    await sdk.logIn(userId);
+    await Purchases.logIn(userId);
   } catch {}
 }
 
 export async function checkProStatus(): Promise<boolean> {
-  const sdk = getSDK();
-  if (!sdk) return false;
   try {
-    const info = await sdk.getCustomerInfo();
+    const info = await Purchases.getCustomerInfo();
     return !!info.entitlements.active[ENTITLEMENT_ID];
   } catch {
     return false;
@@ -51,43 +26,34 @@ export async function checkProStatus(): Promise<boolean> {
 }
 
 export async function getOfferings() {
-  const sdk = getSDK();
-  if (!sdk) return null;
   try {
-    return await sdk.getOfferings();
+    return await Purchases.getOfferings();
   } catch {
     return null;
   }
 }
 
 export async function purchasePackage(pkg: any) {
-  const sdk = getSDK();
-  if (!sdk) throw new Error('Purchases not available on web');
-  return sdk.purchasePackage(pkg);
+  return Purchases.purchasePackage(pkg);
 }
 
 export async function restorePurchases() {
-  const sdk = getSDK();
-  if (!sdk) return null;
   try {
-    return await sdk.restorePurchases();
+    return await Purchases.restorePurchases();
   } catch {
     return null;
   }
 }
 
 export async function presentCustomerCenter() {
-  if (Platform.OS === 'web') return;
   try {
-    const { default: PurchasesUI } = require('react-native-purchases-ui');
+    const PurchasesUI = require('react-native-purchases-ui').default;
     await PurchasesUI.presentCustomerCenter();
   } catch {}
 }
 
 export async function logoutPurchases() {
-  const sdk = getSDK();
-  if (!sdk) return;
   try {
-    await sdk.logOut();
+    await Purchases.logOut();
   } catch {}
 }
