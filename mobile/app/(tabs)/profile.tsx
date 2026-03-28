@@ -15,7 +15,16 @@ export default function ProfileScreen() {
 
   const handleManageSub = async () => {
     if (Platform.OS === 'web') {
-      Alert.alert('Subscriptions', 'Manage your subscription in the iOS app via App Store settings.');
+      try {
+        const { data } = await (await import('../../lib/api')).default.post('/api/stripe/portal');
+        if (data.url) {
+          const { Linking } = await import('react-native');
+          await Linking.openURL(data.url);
+          await refreshProStatus();
+        }
+      } catch {
+        Alert.alert('Error', 'Could not open subscription portal.');
+      }
       return;
     }
     await presentCustomerCenter();

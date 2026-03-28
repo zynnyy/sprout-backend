@@ -14,6 +14,7 @@ model User {
   password              String
   isPro                 Boolean  @default(false)
   revenuecatCustomerId  String?
+  stripeCustomerId      String?
   proExpiresAt          DateTime?
   createdAt             DateTime @default(now())
 
