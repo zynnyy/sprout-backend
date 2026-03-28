@@ -13,7 +13,24 @@ import subscriptionRouter from './routes/subscription';
 const app = express();
 const PORT = process.env.PORT ?? 3000;
 
-app.use(cors({ origin: process.env.CLIENT_URL ?? '*', credentials: true }));
+const allowedOrigins = (process.env.CLIENT_URL ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: allowedOrigins.length
+    ? (origin, cb) => {
+        // Allow requests with no origin (mobile apps, curl) or matching origins
+        if (!origin || allowedOrigins.some((o) => origin.startsWith(o))) {
+          cb(null, true);
+        } else {
+          cb(new Error(`CORS: ${origin} not allowed`));
+        }
+      }
+    : '*',
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
