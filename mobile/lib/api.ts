@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://stellar-gratitude-production-6cb5.up.railway.app';
 
 const api = axios.create({ baseURL: API_URL });
 
